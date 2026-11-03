@@ -14,19 +14,21 @@
 Node.js 18.17 이상이 필요합니다.
 
 ```bash
-# 저장소에서 바로 실행
+# 설치 없이 GitHub에서 바로 실행 (첫 실행 때 자동으로 빌드됨)
+npx github:GomgomKim/ascii-dance ./dance.mp4 [옵션]
+
+# 또는 clone 해서 실행
 git clone https://github.com/GomgomKim/ascii-dance.git
 cd ascii-dance
 npm install          # 설치 시 자동으로 빌드됨 (prepare)
 node dist/cli.js ./dance.mp4
 
-# 또는 전역 명령으로 링크
+# 전역 명령으로 등록
 npm link
 ascii-dance ./dance.mp4
-
-# npm에 배포한 뒤에는
-npx ascii-dance ./dance.mp4 [옵션]
 ```
+
+> npm 레지스트리의 `ascii-dance`는 이름이 같은 **다른 사람의 패키지**입니다. `npx ascii-dance`로 실행하지 마세요.
 
 재생 중 `q`, `Esc`, `Ctrl+C`로 종료합니다.
 
