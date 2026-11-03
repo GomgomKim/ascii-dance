@@ -1,0 +1,42 @@
+{
+  "name": "ascii-dance",
+  "version": "0.1.0",
+  "description": "Play dance videos as ASCII art in your terminal (and export them for Reels)",
+  "type": "module",
+  "bin": {
+    "ascii-dance": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "sample": "node scripts/make-sample.mjs",
+    "gen-font": "node scripts/gen-font.mjs",
+    "start": "node dist/cli.js"
+  },
+  "keywords": [
+    "ascii",
+    "ascii-art",
+    "video",
+    "terminal",
+    "cli",
+    "dance",
+    "ffmpeg"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "ffmpeg-static": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
