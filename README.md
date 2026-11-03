@@ -8,6 +8,7 @@
 - 전체 프레임을 먼저 변환해두고 재생 → 렉 없음
 - ANSI 커서 이동 + synchronized output으로 깜빡임/찢어짐 없이 덮어쓰기
 - 폰으로 찍은 세로 영상(회전 메타데이터)도 올바른 방향으로 재생
+- **웹 버전**도 있어요: 브라우저에 영상을 올리면 바로 ASCII 미리보기 + 9:16 mp4 다운로드 ([아래](#웹-버전))
 
 ## 설치 / 실행
 
@@ -129,12 +130,53 @@ export는 터미널 크기와 상관없이 출력 해상도에 맞춰 문자 수
 - 단색 배경 + 몸에 조명이 들어간 영상이 `--threshold`로 배경 날리기 제일 잘 됨
 - 배경보다 옷 색이 어두우면 `--invert`
 
+## 웹 버전
+
+`web/` 폴더는 CLI와 **같은 변환 엔진**(`src/core`)을 쓰는 Vite + React + TypeScript 앱입니다. 서버 없이 브라우저 안에서만 처리하므로 영상이 어디로도 업로드되지 않습니다.
+
+- 영상 올리기(클릭 / 드래그 앤 드롭) → 9:16 캔버스로 실시간 ASCII 미리보기
+- CLI와 동일한 옵션: 문자셋(`standard` · `detailed` · `blocks` · `code` · 커스텀), 모노 / 컬러 / 매트릭스, 반전, 대비, 배경 날리기(threshold), 가로 문자 수
+- 레이아웃: ASCII만 / 원본 + ASCII(위아래)
+- **9:16(1080×1920) 영상 다운로드**
+  - WebCodecs로 프레임을 하나씩 렌더링해서 인코딩 → 기기가 느려도 **프레임 누락 없음**, 원본 오디오 포함
+  - Chrome / Edge / Safari: H.264 + AAC **mp4**. H.264 인코딩이 안 되는 브라우저는 webm
+  - WebCodecs가 없으면 MediaRecorder 실시간 녹화로 자동 대체
+- 하단 안전 영역(릴스 UI에 안 가리는 위치)에 `@gomgom_kim` + 사이트 주소 워터마크 (토글 가능)
+
+```bash
+cd web
+npm install
+npm run dev          # http://localhost:5173
+npm run build        # → web/dist
+```
+
+### 워터마크 / 사이트 설정
+
+[`web/src/config.ts`](web/src/config.ts)에서 관리합니다.
+
+| 항목 | 기본값 | 환경변수로 덮어쓰기 |
+| --- | --- | --- |
+| 핸들 | `@gomgom_kim` | `VITE_WATERMARK_HANDLE` |
+| 사이트 주소 | `ascii-dance.vercel.app` | `VITE_SITE_URL` |
+| 릴스 안전 영역 | 위 220 · 아래 420 · 좌 60 · 우 120 px | — |
+
+글꼴, 크기, 반투명 배경, 기본 on/off도 같은 파일에 있습니다. Vercel에 배포한 뒤 실제 도메인이 다르면 `VITE_SITE_URL`만 바꾸면 됩니다.
+
+### Vercel 배포
+
+루트의 [`vercel.json`](vercel.json)에 설정이 들어 있어서 **Root Directory를 따로 바꿀 필요가 없습니다**. 웹 앱이 `../src/core`를 가져오기 때문에 저장소 루트를 기준으로 빌드합니다.
+
+1. Vercel → **Add New… → Project** → `GomgomKim/ascii-dance` 저장소 Import
+2. Framework / Build 설정은 `vercel.json`이 덮어쓰므로 그대로 **Deploy**
+   - install: `npm ci --prefix web` · build: `npm run build --prefix web` · output: `web/dist`
+3. (선택) Settings → Environment Variables에 `VITE_SITE_URL` = 실제 도메인
+
 ## 개발
 
 ```bash
 npm install
 npm run build        # tsc → dist/
-npm test             # vitest (순수 함수 유닛 테스트 + testsrc 통합 테스트)
+npm test             # vitest (core 유닛 테스트 + testsrc 통합 테스트 + 웹 엔진 테스트)
 npm run sample       # 테스트 영상 생성
 npm run gen-font     # (개발용) export용 글리프 비트맵 재생성 — playwright + JetBrains Mono 필요
 ```
@@ -143,12 +185,22 @@ npm run gen-font     # (개발용) export용 글리프 비트맵 재생성 — p
 
 ```
 src/
-  cli.ts        옵션 파싱, 변환 → 재생 / export 흐름
-  ascii.ts      (순수) 밝기→문자 매핑, 반전/대비/임계값, 매트릭스 색, 리사이즈 계산
-  frame.ts      (순수) RGB 프레임 → 문자 셀 → ANSI 라인
-  ffmpeg.ts     ffmpeg-static으로 probe / 프레임 추출 (rawvideo rgb24 파이프)
-  player.ts     터미널 재생 (alt screen, 커서 이동, 오디오 시계 싱크, 루프)
-  export.ts     문자 셀 래스터화 → ffmpeg 인코딩 (세로/나란히 레이아웃)
-  progress.ts   진행률 바
-  font-data.ts  내장 글리프 비트맵 (자동 생성)
+  core/           ★ CLI와 웹이 같이 쓰는 변환 엔진 (Node API 사용 금지, 테스트로 강제)
+    ascii.ts        밝기→문자 매핑, 반전/대비/임계값, 매트릭스 색, 리사이즈 계산
+    frame.ts        RGB/RGBA 프레임 → 문자 셀 → ANSI 라인
+    raster.ts       문자 셀 → 픽셀 (내장 비트맵 폰트, RGB24/RGBA)
+    layout.ts       9:16 / 나란히 레이아웃 계산
+    font-data.ts    내장 글리프 비트맵 (자동 생성)
+  cli.ts          옵션 파싱, 변환 → 재생 / export 흐름
+  ffmpeg.ts       ffmpeg-static으로 probe / 프레임 추출 (rawvideo rgb24 파이프)
+  player.ts       터미널 재생 (alt screen, 커서 이동, 오디오 시계 싱크, 루프)
+  export.ts       ffmpeg 인코딩 (세로/나란히 필터 그래프)
+  progress.ts     진행률 바
+web/
+  src/config.ts           워터마크 · 안전 영역 · export 설정
+  src/engine/renderer.ts  영상 프레임 → core → 9:16 캔버스 (미리보기 = export 동일)
+  src/engine/encoder.ts   WebCodecs 오프라인 인코딩 (mediabunny, 필요할 때만 로드)
+  src/engine/recorder.ts  MediaRecorder 대체 경로
+  src/App.tsx             UI
+vercel.json       Vercel 빌드 설정 (web/ 정적 배포)
 ```

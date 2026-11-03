@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { resolveCharset } from '../src/ascii.js';
-import { cellsToAnsiLines, composeScreen, frameToCells } from '../src/frame.js';
+import { cellsToAnsiLines, composeScreen, exportGrid, frameToCells, GLYPH_H, GLYPH_W, rasterize, resolveCharset } from '../src/core/index.js';
 import { progressBar } from '../src/progress.js';
 import { visibleWidth } from '../src/player.js';
 import { parseProbe } from '../src/ffmpeg.js';
-import { buildExportArgs, buildFilter, exportGrid, GLYPH_H, GLYPH_W, rasterize } from '../src/export.js';
+import { buildExportArgs, buildFilter } from '../src/export.js';
 
 // 2×2 frame: black, white, red, dark gray
 const rgb = new Uint8Array([0, 0, 0, 255, 255, 255, 255, 0, 0, 40, 40, 40]);

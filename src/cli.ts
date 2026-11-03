@@ -1,10 +1,21 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util';
 import { existsSync } from 'node:fs';
-import { CHARSETS, computeSize, resolveCharset, type ColorMode } from './ascii.js';
+import {
+  CHARSETS,
+  cellsToAnsiLines,
+  computeSize,
+  exportGrid,
+  frameToCells,
+  GLYPH_H,
+  GLYPH_W,
+  rasterize,
+  resolveCharset,
+  type ColorMode,
+  type RenderOptions,
+} from './core/index.js';
 import { extractFrames, hasCommand, probe } from './ffmpeg.js';
-import { cellsToAnsiLines, frameToCells, type RenderOptions } from './frame.js';
-import { buildExportArgs, createEncoder, exportGrid, GLYPH_H, GLYPH_W, rasterize } from './export.js';
+import { buildExportArgs, createEncoder } from './export.js';
 import { play } from './player.js';
 import { createProgress } from './progress.js';
 

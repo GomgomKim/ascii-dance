@@ -21,16 +21,26 @@ export interface Cells {
 /** Default foreground for mono mode in exported videos. */
 export const MONO_FG: [number, number, number] = [235, 235, 235];
 
-export function frameToCells(rgb: Uint8Array, cols: number, rows: number, opts: RenderOptions): Cells {
+/**
+ * Convert a cols×rows pixel buffer into character cells.
+ * `channels` = 3 for RGB24 (ffmpeg rawvideo), 4 for RGBA (canvas ImageData).
+ */
+export function frameToCells(
+  rgb: Uint8Array | Uint8ClampedArray,
+  cols: number,
+  rows: number,
+  opts: RenderOptions,
+  channels: 3 | 4 = 3,
+): Cells {
   const n = cols * rows;
-  if (rgb.length < n * 3) throw new Error(`frame buffer too small: ${rgb.length} < ${n * 3}`);
+  if (rgb.length < n * channels) throw new Error(`frame buffer too small: ${rgb.length} < ${n * channels}`);
   const chars = new Array<string>(n);
   const colors = new Uint8Array(n * 3);
   const { charset, mode } = opts;
   for (let i = 0; i < n; i++) {
-    const r = rgb[i * 3]!;
-    const g = rgb[i * 3 + 1]!;
-    const b = rgb[i * 3 + 2]!;
+    const r = rgb[i * channels]!;
+    const g = rgb[i * channels + 1]!;
+    const b = rgb[i * channels + 2]!;
     const l = adjustLuminance(luminance(r, g, b), opts);
     chars[i] = charset[luminanceToIndex(l, charset.length)]!;
     if (mode === 'color') {

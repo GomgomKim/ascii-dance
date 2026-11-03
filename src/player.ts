@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from 'node:child_process';
-import { composeScreen } from './frame.js';
+import { composeScreen } from './core/frame.js';
 
 export interface PlayOptions {
   fps: number;
