@@ -1,6 +1,6 @@
 // Dev-only: rasterize a monospace font into 8-bit alpha masks used by `--export`.
 // Run: node scripts/gen-font.mjs  (requires playwright + chromium + JetBrains Mono installed)
-// Output: src/font-data.ts
+// Output: src/core/font-data.ts
 import { createRequire } from 'node:module';
 const { chromium } = createRequire(import.meta.url)('playwright');
 import { writeFileSync } from 'node:fs';
@@ -76,5 +76,5 @@ export const GLYPHS: Record<string, string> = {
 ${entries.join('\n')}
 };
 `;
-writeFileSync(new URL('../src/font-data.ts', import.meta.url), src);
+writeFileSync(new URL('../src/core/font-data.ts', import.meta.url), src);
 console.log(`wrote ${Object.keys(result).length} glyphs`);

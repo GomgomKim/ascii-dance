@@ -8,7 +8,7 @@ import {
   luminanceToIndex,
   matrixColor,
   resolveCharset,
-} from '../src/ascii.js';
+} from '../src/core/ascii.js';
 
 describe('resolveCharset', () => {
   it('defaults to the standard preset', () => {
